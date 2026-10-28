@@ -73,6 +73,34 @@ export default function AdminDashboard() {
     }
   };
 
+  // === FITUR BARU: Edit & Hapus User ===
+  const updateUser = async (user) => {
+    const newUsername = prompt("Ubah Username:", user.username);
+    if (newUsername === null) return; 
+    const newRole = prompt("Ubah Role (admin/employee):", user.role);
+    if (newRole === null) return;
+
+    try {
+      await api.put(`/users/${user.id}`, {
+        username: sanitizeInput(newUsername),
+        role: newRole
+      });
+      load();
+    } catch (err) {
+      alert(err.response?.data?.detail || "Gagal update user");
+    }
+  };
+
+  const deleteUser = async (id) => {
+    if (!confirm("Yakin ingin menghapus user ini? Semua tugas miliknya juga akan terhapus.")) return;
+    try {
+      await api.delete(`/users/${id}`);
+      load();
+    } catch (err) {
+      alert(err.response?.data?.detail || "Gagal menghapus user");
+    }
+  };
+
   return (
     <div className="min-h-screen">
       <Navbar />
@@ -198,7 +226,7 @@ export default function AdminDashboard() {
                 {users.map((u) => (
                   <li
                     key={u.id}
-                    className="px-5 py-2.5 flex items-center gap-3"
+                    className="px-5 py-2.5 flex items-center gap-3 hover:bg-slate-50 transition"
                   >
                     <Avatar name={u.username} role={u.role} />
                     <div className="min-w-0 flex-1">
@@ -209,15 +237,21 @@ export default function AdminDashboard() {
                         {u.email}
                       </p>
                     </div>
-                    <span
-                      className={`text-[11px] font-medium px-2 py-0.5 rounded-full ring-1 ring-inset ${
-                        u.role === "admin"
-                          ? "bg-indigo-50 text-indigo-700 ring-indigo-200"
-                          : "bg-slate-50 text-slate-600 ring-slate-200"
-                      }`}
-                    >
-                      {u.role}
-                    </span>
+                    
+                    {/* Tombol Aksi CRUD */}
+                    <div className="flex items-center gap-2">
+                       <span
+                        className={`text-[11px] font-medium px-2 py-0.5 rounded-full ring-1 ring-inset ${
+                          u.role === "admin"
+                            ? "bg-indigo-50 text-indigo-700 ring-indigo-200"
+                            : "bg-slate-50 text-slate-600 ring-slate-200"
+                        }`}
+                      >
+                        {u.role}
+                      </span>
+                      <button onClick={() => updateUser(u)} className="text-xs text-blue-600 hover:underline">Edit</button>
+                      <button onClick={() => deleteUser(u.id)} className="text-xs text-red-600 hover:underline">Hapus</button>
+                    </div>
                   </li>
                 ))}
               </ul>

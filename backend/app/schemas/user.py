@@ -1,4 +1,5 @@
 from pydantic import BaseModel, EmailStr, Field, ConfigDict
+from typing import Optional
 from app.models.user import UserRole
 
 class UserBase(BaseModel):
@@ -8,6 +9,12 @@ class UserBase(BaseModel):
 class UserCreate(UserBase):
     password: str = Field(..., min_length=8, max_length=72)
     role: UserRole = UserRole.EMPLOYEE
+
+class UserUpdate(BaseModel):
+    username: Optional[str] = Field(None, min_length=3, max_length=50, pattern=r"^[a-zA-Z0-9_]+$")
+    email: Optional[EmailStr] = None
+    password: Optional[str] = Field(None, min_length=8, max_length=72)
+    role: Optional[UserRole] = None
 
 class UserOut(UserBase):
     model_config = ConfigDict(from_attributes=True)
