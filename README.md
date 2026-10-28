@@ -182,7 +182,7 @@ Berkat script `seed.py`, Anda tidak perlu membuat akun secara manual. Gunakan kr
 
 | Role | Username | Password | Email |
 |---|---|---|---|
-| **Admin** | `admin_mitsu1` | `admin123` | `admin@mitsubishilogistics.co.id` |
+| **Admin** | `admin_mitsu` | `admin123` | `admin@mitsubishilogistics.co.id` |
 | **Employee** | `budi_employee` | `employee123` | `budi@mitsubishilogistics.co.id` |
 
 > ⚠️ **Catatan Keamanan untuk Produksi:** Jika aplikasi ini akan dideploy ke publik, sangat disarankan untuk mengubah password default ini setelah login pertama.
