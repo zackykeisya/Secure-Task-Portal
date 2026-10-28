@@ -20,6 +20,10 @@ export default function AdminDashboard() {
   const [editForm, setEditForm] = useState({ username: "", email: "", password: "", role: "employee" });
   const [editMsg, setEditMsg] = useState(null);
 
+  // State untuk Modal Hapus User
+  const [deletingUser, setDeletingUser] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+
   const load = async () => {
     const [t, u] = await Promise.all([api.get("/tasks/"), api.get("/users/")]);
     setTasks(t.data);
@@ -73,7 +77,7 @@ export default function AdminDashboard() {
     }
   };
 
-  // === UPDATE USER (Modal) ===
+  // === UPDATE USER ===
   const openEditModal = (user) => {
     setEditingUser(user);
     setEditForm({ username: user.username, email: user.email, password: "", role: user.role });
@@ -89,28 +93,34 @@ export default function AdminDashboard() {
       role: editForm.role,
     };
     
-    // Hanya kirim password jika diisi
     if (editForm.password) {
       payload.password = editForm.password; 
     }
 
     try {
       await api.put(`/users/${editingUser.id}`, payload);
-      setEditingUser(null); // Tutup modal
+      setEditingUser(null);
       load();
     } catch (err) {
       setEditMsg({ type: "error", text: err.response?.data?.detail || "Gagal update user." });
     }
   };
 
-  // === DELETE USER ===
-  const deleteUser = async (id) => {
-    if (!confirm("Yakin ingin menghapus user ini? Semua tugas miliknya juga akan terhapus.")) return;
+  // === DELETE USER (Modal Konfirmasi) ===
+  const openDeleteModal = (user) => {
+    setDeletingUser(user);
+  };
+
+  const handleDeleteSubmit = async () => {
+    setIsDeleting(true);
     try {
-      await api.delete(`/users/${id}`);
+      await api.delete(`/users/${deletingUser.id}`);
+      setDeletingUser(null); // Tutup modal jika sukses
       load();
     } catch (err) {
       alert(err.response?.data?.detail || "Gagal menghapus user");
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -174,7 +184,8 @@ export default function AdminDashboard() {
                         {u.role}
                       </span>
                       <button onClick={() => openEditModal(u)} className="text-xs text-blue-600 hover:underline">Edit</button>
-                      <button onClick={() => deleteUser(u.id)} className="text-xs text-red-600 hover:underline">Hapus</button>
+                      {/* Tombol Hapus memanggil openDeleteModal */}
+                      <button onClick={() => openDeleteModal(u)} className="text-xs text-red-600 hover:underline">Hapus</button>
                     </div>
                   </li>
                 ))}
@@ -239,6 +250,41 @@ export default function AdminDashboard() {
                 <button type="submit" className="px-4 py-2 text-sm bg-slate-900 hover:bg-slate-800 text-white rounded-md transition">Simpan Perubahan</button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* === MODAL HAPUS USER (KONFIRMASI) === */}
+      {deletingUser && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-sm overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+            <div className="p-5">
+              <div className="w-12 h-12 rounded-full bg-red-50 flex items-center justify-center mx-auto mb-4">
+                <svg className="w-6 h-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+              </div>
+              <h2 className="text-lg font-semibold text-slate-900 text-center mb-1">Hapus Pengguna?</h2>
+              <p className="text-sm text-slate-500 text-center mb-6">
+                Anda yakin ingin menghapus <span className="font-medium text-slate-900">{deletingUser.username}</span>? Tindakan ini tidak dapat dibatalkan dan semua tugas miliknya akan terhapus.
+              </p>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setDeletingUser(null)}
+                  disabled={isDeleting}
+                  className="flex-1 px-4 py-2 text-sm text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-md transition disabled:opacity-50"
+                >
+                  Batal
+                </button>
+                <button
+                  onClick={handleDeleteSubmit}
+                  disabled={isDeleting}
+                  className="flex-1 px-4 py-2 text-sm text-white bg-red-600 hover:bg-red-700 rounded-md transition disabled:opacity-50"
+                >
+                  {isDeleting ? "Menghapus..." : "Ya, Hapus"}
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}
